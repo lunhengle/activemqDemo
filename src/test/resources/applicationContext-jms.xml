@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <!--配置connectionFactory-->
+    <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+        <property name="connectionFactory">
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                <property name="brokerURL">
+                    <value>tcp://127.0.0.1:61616</value>
+                </property>
+            </bean>
+        </property>
+        <property name="maxConnections" value="100"/>
+    </bean>
+    <!--Spring jms template-->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="defaultDestinationName" value="subject"/>
+        <!--区别它采用的模式 false 为 p2p true 为 订阅发布-->
+        <property name="pubSubDomain" value="true"></property>
+    </bean>
+    <!--发送消息的目的地(一个队列)-->
+    <bean id="destination" class="org.apache.activemq.command.ActiveMQTopic">
+        <!--设置消息队列的名字-->
+        <constructor-arg index="0" value="subject"/>
+    </bean>
+    <bean id="proxyJMSConsumer" class="com.lhl.springmq.exp1.ProxyJMSConsumer">
+        <property name="jmsTemplate" ref="jmsTemplate"/>
+    </bean>
+</beans>
